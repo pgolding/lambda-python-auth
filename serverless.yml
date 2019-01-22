@@ -1,0 +1,41 @@
+service: authy # NOTE: update this with your service name
+
+plugins:
+  - serverless-pseudo-parameters
+
+provider:
+  name: aws
+  runtime: python3.6
+  stage: dev
+  region: us-east-1
+
+plugins:
+  - serverless-pseudo-parameters
+
+functions:
+  # You can call this one without any auth
+  create:
+    handler: post.hello
+    events:
+      - http:
+          path: auth
+          method: post
+          cors: true
+		  
+  get:
+    # This lambda requires an Authorization header
+    handler: get.hello
+    events:
+      - http:
+          path: auth
+          method: get
+          cors: true
+          authorizer:
+            arn: arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:authy-dev-authorizer
+            resultTtlInSeconds: 0 # TTL = 0 means that the policy is NOT cached - i.e. authorizer called every time
+            identitySource: method.request.header.Authorization # User the Authorization header (OAuth2)
+            identityValidationExpression: ^Bearer [-0-9a-zA-Z\._]*$  # Reject at gateway if not OAuth2 token
+
+  authorizer:
+    handler: authorizer.authorize
+
