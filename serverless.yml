@@ -21,7 +21,7 @@ functions:
           path: auth
           method: post
           cors: true
-          
+
   get:
     # This lambda requires an Authorization header
     handler: get.hello
